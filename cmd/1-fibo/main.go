@@ -9,11 +9,11 @@ import (
 )
 
 func main() {
-	var nFlag = flag.Int("n", 0, "Номер числа Фибоначчи")
+	var nFlag = flag.Int("n", -1, "Номер числа Фибоначчи")
 	flag.Parse()
 	n := *nFlag
 
-	if n == 0 {
+	if n == -1 {
 		var input string
 		fmt.Printf("Укажите номер числа Фибоначчи: ")
 		fmt.Scanln(&input)
