@@ -1,7 +1,7 @@
 package fibo
 
 func Fibo(n int) int {
-	if n < 3 {
+	if n < 2 {
 		return 1
 	}
 	f := [2]int{1, 1}
