@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"go-core-own/pkg/fibo"
+	"go-core-own/homework-1/pkg/fibo"
 	"log"
 	"strconv"
 )
