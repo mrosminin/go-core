@@ -35,7 +35,8 @@ func main() {
 		data, err := spider.Scan(*url, 2)
 		if err != nil {
 			log.Printf("ошибка при сканировании сайта %s: %v\n", *url, err)
-			return
+			*url = ""
+			continue
 		}
 		var pages []Page
 		for k, v := range data {
