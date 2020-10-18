@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+const depth = 2
+
 type Page struct {
 	Url   string
 	Title string
@@ -32,7 +34,7 @@ func main() {
 			fmt.Scanln(url)
 		}
 
-		data, err := spider.Scan(*url, 2)
+		data, err := spider.Scan(*url, depth)
 		if err != nil {
 			log.Printf("ошибка при сканировании сайта %s: %v\n", *url, err)
 			*url = ""
