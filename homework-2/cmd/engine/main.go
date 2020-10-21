@@ -25,7 +25,6 @@ func (p Page) String() string {
 func Print(pages []Page) {
 	if len(pages) == 0 {
 		fmt.Println("Ничего не найдено. Попробуй еще.")
-		return
 	}
 	for i, p := range pages {
 		fmt.Printf("%d %v\n", i+1, p)
