@@ -10,72 +10,57 @@ import (
 
 const depth = 2
 
+var sites = [2]string{"http://www.golang.org", "http://www.transflow.ru"}
+
 type Page struct {
 	Url   string
 	Title string
 }
+type Pages []Page
 
 func (p Page) String() string {
 	return fmt.Sprintf("%s: %s", p.Url, p.Title)
 }
+func Print(pages []Page) {
+	for i, p := range pages {
+		fmt.Printf("%d %v\n", i+1, p)
+	}
+}
+
+func Find(pages []Page, s string) Pages {
+	var res Pages
+	for _, p := range pages {
+		if strings.Contains(strings.ToLower(p.Title), strings.ToLower(s)) {
+			res = append(res, p)
+		}
+	}
+	return res
+}
 
 func main() {
-	var url = flag.String("url", "", "URL для сканирования")
-	var str = flag.String("str", "", "Строка для поиска")
-	flag.Parse()
-
-	for i := 0; i < 2; i++ {
-		// Разумно полагаю, что если урл задан ключом, то следует просканировать только одну страницу
-		if *url != "" {
-			i++
-		}
-		for *url == "" {
-			fmt.Printf("Введите URL для сканирования: ")
-			fmt.Scanln(url)
-		}
-
-		data, err := spider.Scan(*url, depth)
+	var pages []Page
+	for i := 0; i < len(sites); i++ {
+		data, err := spider.Scan(sites[i], depth)
 		if err != nil {
-			log.Printf("ошибка при сканировании сайта %s: %v\n", *url, err)
-			*url = ""
+			log.Printf("ошибка при сканировании сайта %s: %v\n", sites[i], err)
 			continue
 		}
-		var pages []Page
 		for k, v := range data {
 			pages = append(pages, Page{Url: k, Title: v})
 		}
-		if len(pages) == 0 {
-			fmt.Println("На странице не найдено ни одной ссылки.")
-		}
-		if len(pages) > 0 {
-			if *str == "" {
-				fmt.Printf("На странице %s найдено %d ссылок\n", *url, len(pages))
-			}
-			for *str == "" {
-				fmt.Printf("Введите строку для поиска: ")
-				fmt.Scanln(str)
-			}
-			var res []Page
-			for _, p := range pages {
-				if strings.Contains(strings.ToLower(p.Title), strings.ToLower(*str)) {
-					res = append(res, p)
-				}
-			}
-			if len(res) == 0 {
-				fmt.Println("Яндекс - найдётся всё! А у нас краулер.")
-			}
-			if len(res) > 0 {
-				fmt.Printf("Найдено %d совпадений:\n", len(res))
-				for i, p := range res {
-					fmt.Printf("%d. %v\n", i+1, p)
-				}
-			}
-		}
-		if i == 0 {
-			*url = ""
-			*str = ""
-			fmt.Println("Требование такое - пару раз просканировать.")
-		}
 	}
+	fmt.Printf("На сайтах %v найдено %d ссылок\n", sites, len(pages))
 
+	var str = flag.String("str", "", "Строка для поиска")
+	flag.Parse()
+
+	if *str != "" {
+		Print(Find(pages, *str))
+		return
+	}
+	for {
+		fmt.Printf("\nВведите строку для поиска: ")
+		fmt.Scanln(str)
+		Print(Find(pages, *str))
+	}
 }
