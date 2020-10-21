@@ -1,17 +1,18 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
-	"go-core-own/homework-2/pkg/spider"
-	"go-core-own/homework-2/pkg/stub"
+	"go-core-own/homework-3/pkg/spider"
+	"go-core-own/homework-3/pkg/stub"
 	"log"
 	"strings"
 )
 
 const depth = 2
 
-var sites = [2]str{"https://go.dev", "http://www.transflow.ru"}
+var sites = [2]myType{"https://go.dev", "http://www.transflow.ru"}
 
 type Page struct {
 	Url   string
@@ -23,65 +24,74 @@ func (p Page) String() string {
 	return fmt.Sprintf("%s: %s", p.Url, p.Title)
 }
 func (pp Pages) Print() {
-	if len(pp) == 0 {
-		fmt.Println("Ничего не найдено. Попробуй еще.")
-		return
-	}
 	for i, p := range pp {
 		fmt.Printf("%d %v\n", i+1, p)
 	}
 }
 
-func (pp Pages) Find(s string) Pages {
+func (pp Pages) Find(s string) (Pages, error) {
 	var res Pages
 	for _, p := range pp {
 		if strings.Contains(strings.ToLower(p.Title), strings.ToLower(s)) {
 			res = append(res, p)
 		}
 	}
-	return res
+	if len(res) == 0 {
+		return nil, errors.New("ничего не найдено")
+	}
+	return res, nil
 }
 
 type Scanner interface {
-	Scan()
+	Scan() (data map[string]string, err error)
 }
 
-type stubType int
+type StubType int
 
-func (st stubType) Scan() (data map[string]string, err error) {
+func (st StubType) Scan() (data map[string]string, err error) {
 	return stub.Scan()
 }
 
-type str string
+type myType string
 
-func (s str) Scan() (data map[string]string, err error) {
+func (s myType) Scan() (data map[string]string, err error) {
 	return spider.Scan(string(s), depth)
 }
 
-func main() {
+func Search(i Scanner, str string) (Pages, error) {
 	var pages Pages
-	for _, s := range sites {
-		data, err := s.Scan()
-		if err != nil {
-			log.Printf("ошибка при сканировании сайта %s: %v\n", s, err)
-			continue
-		}
-		for k, v := range data {
-			pages = append(pages, Page{Url: k, Title: v})
-		}
+	data, err := i.Scan()
+	if err != nil {
+		log.Printf("ошибка при сканировании сайта %v\n", err)
+		return nil, err
 	}
-	fmt.Printf("На сайтах %v найдено %d ссылок\n", sites, len(pages))
+	for k, v := range data {
+		pages = append(pages, Page{Url: k, Title: v})
+	}
+	if len(pages) == 0 {
+		return nil, errors.New("ссылок не найдено")
+	}
+	pages, err = pages.Find(str)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	return pages, nil
+}
 
+func main() {
 	var str = flag.String("str", "", "Строка для поиска")
 	flag.Parse()
-
-	if *str != "" {
-		pages.Find(*str).Print()
-		return
-	}
-	for {
+	for *str == "" {
 		fmt.Printf("\nВведите строку для поиска: ")
 		fmt.Scanln(str)
-		pages.Find(*str).Print()
+	}
+	for _, s := range sites {
+		data, err := Search(s, *str)
+		if err != nil {
+			log.Printf("ошибка при поиске на сайте %s: %v\n", s, err)
+			continue
+		}
+		data.Print()
 	}
 }

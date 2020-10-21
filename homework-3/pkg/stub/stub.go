@@ -1,7 +1,7 @@
 package stub
 
-func Scan() (data map[string]string, err error) {
-	return map[string]string{
-		"http://www.transflow.ru/service": "Сервис ТРАНСФЛОУ",
-	}, nil
+func Scan() (map[string]string, error) {
+	m := make(map[string]string)
+	m["http://www.transflow.ru/service"] = "Сервис ТРАНСФЛОУ"
+	return m, nil
 }
