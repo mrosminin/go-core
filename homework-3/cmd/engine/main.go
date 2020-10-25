@@ -15,6 +15,7 @@ type Scanner interface {
 }
 
 type Page struct {
+	Scanner
 	Url   string
 	Title string
 }
@@ -26,23 +27,6 @@ func (p Page) String() string {
 	return fmt.Sprintf("%s: %s", p.Url, p.Title)
 }
 
-type Pages []Page
-
-func (pp Pages) Print() {
-	for i, p := range pp {
-		fmt.Printf("%d %v\n", i+1, p)
-	}
-}
-func (pp Pages) Find(s string) Pages {
-	var res Pages
-	for _, p := range pp {
-		if strings.Contains(strings.ToLower(p.Title), strings.ToLower(s)) {
-			res = append(res, p)
-		}
-	}
-	return res
-}
-
 var urls = [2]Page{
 	{Url: "https://go.dev"},
 	{Url: "http://www.transflow.ru"},
@@ -51,32 +35,32 @@ var urls = [2]Page{
 func main() {
 	var str = flag.String("str", "", "Строка для поиска")
 	flag.Parse()
-	for *str == "" {
-		fmt.Printf("\nВведите строку для поиска: ")
-		fmt.Scanln(str)
-	}
+
+	// Сканируем страницы, сохраняем результаты сканирования с pages
+	var pages []Page
 	for _, p := range urls {
-		data, err := Search(p, *str)
+		data, err := p.Scan()
 		if err != nil {
 			log.Printf("ошибка при поиске на странице %s: %v\n", p, err)
 			continue
 		}
-		data.Print()
+		for k, v := range data {
+			pages = append(pages, Page{Url: k, Title: v})
+		}
 	}
-}
 
-func Search(s Scanner, str string) (Pages, error) {
-	var pages Pages
-	data, err := s.Scan()
-	if err != nil {
-		log.Printf("ошибка при сканировании сайта %v\n", err)
-		return nil, err
+	for {
+		for *str == "" {
+			fmt.Printf("\nВведите строку для поиска: ")
+			fmt.Scanln(str)
+		}
+		i := 1
+		for _, p := range pages {
+			if strings.Contains(strings.ToLower(p.Title), strings.ToLower(*str)) {
+				fmt.Printf("%d %v\n", i, p)
+				i++
+			}
+		}
+		*str = ""
 	}
-	for k, v := range data {
-		pages = append(pages, Page{Url: k, Title: v})
-	}
-	if len(pages) > 0 {
-		pages = pages.Find(str)
-	}
-	return pages, nil
 }
