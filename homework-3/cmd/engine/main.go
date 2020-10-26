@@ -11,44 +11,50 @@ import (
 const depth = 2
 
 type Scanner interface {
-	Scan() (data map[string]string, err error)
+	Scan(url string) (data map[string]string, err error)
 }
 
 type Page struct {
-	Scanner
 	Url   string
 	Title string
 }
 
-func (p Page) Scan() (data map[string]string, err error) {
-	return spider.Scan(p.Url, depth)
-}
 func (p Page) String() string {
 	return fmt.Sprintf("%s: %s", p.Url, p.Title)
 }
 
-var urls = [2]Page{
+var urls = []Page{
 	{Url: "https://go.dev"},
 	{Url: "http://www.transflow.ru"},
 }
 
-func main() {
-	var str = flag.String("str", "", "Строка для поиска")
-	flag.Parse()
+func (p Page) Scan(url string) (data map[string]string, err error) {
+	return spider.Scan(url, depth)
+}
 
-	// Сканируем страницы, сохраняем результаты сканирования с pages
+func ScanPages(s Scanner, pp []Page) ([]Page, error) {
 	var pages []Page
-	for _, p := range urls {
-		data, err := p.Scan()
+	for _, p := range pp {
+		data, err := s.Scan(p.Url)
 		if err != nil {
-			log.Printf("ошибка при поиске на странице %s: %v\n", p, err)
-			continue
+			return nil, err
 		}
 		for k, v := range data {
 			pages = append(pages, Page{Url: k, Title: v})
 		}
 	}
+	return pages, nil
+}
 
+func main() {
+	var str = flag.String("str", "", "Строка для поиска")
+	flag.Parse()
+	s := new(Page)
+	pages, err := ScanPages(s, urls)
+	if err != nil {
+		log.Printf("ошибка при сканировании: %v\n", err)
+		return
+	}
 	for {
 		for *str == "" {
 			fmt.Printf("\nВведите строку для поиска: ")
