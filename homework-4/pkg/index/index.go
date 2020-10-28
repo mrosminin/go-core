@@ -5,43 +5,50 @@ import (
 	"strings"
 )
 
-// Обратный индекс - хранит по ключу (слову) массив id, документов где данное слово встречается
-var Index = make(map[string][]int)
+type Service struct {
+	Index map[string][]int
+	Docs  []Doc
+}
 
-// Документы - массив элементов структуры с id, на которые ссылается индекс
 type Doc struct {
 	ID    int
 	Url   string
 	Title string
 }
 
-var Docs []Doc
-
-func Fill(data map[string]string) {
-	for k, v := range data {
-		doc := Doc{ID: len(Docs), Url: k, Title: v}
-		Docs = append(Docs, doc)
-		ss := strings.Split(v, " ")
-		for _, s := range ss {
-			s = strings.ToLower(s)
-			Index[s] = append(Index[s], doc.ID)
-		}
-	}
-	sort.Slice(Docs, func(i, j int) bool { return Docs[i].ID < Docs[j].ID })
+// New - конструктор
+func New() *Service {
+	var s Service
+	s.Index = make(map[string][]int)
+	return &s
 }
 
-func Find(s string) []Doc {
+func (s *Service) Fill(data map[string]string) {
+	for k, v := range data {
+		doc := Doc{ID: len(s.Docs), Url: k, Title: v}
+		s.Docs = append(s.Docs, doc)
+		ss := strings.Split(v, " ")
+		for _, str := range ss {
+			str = strings.ToLower(str)
+			s.Index[str] = unique(append(s.Index[str], doc.ID))
+		}
+	}
+	// Бессмысленная сортировка по заданию
+	sort.Slice(s.Docs, func(i, j int) bool { return s.Docs[i].ID < s.Docs[j].ID })
+}
+
+func (s *Service) Find(str string) []Doc {
 	var resIdx []int
-	for k, v := range Index {
-		if strings.Contains(k, s) {
+	for k, v := range s.Index {
+		if k == str {
 			resIdx = append(resIdx, v...)
 		}
 	}
 	var resDocs []Doc
-	for _, idx := range unique(resIdx) {
-		docIdx := sort.Search(len(Docs), func(i int) bool { return Docs[i].ID >= idx })
-		if docIdx < len(Docs) {
-			resDocs = append(resDocs, Docs[docIdx])
+	for _, idx := range resIdx {
+		docIdx := sort.Search(len(s.Docs), func(i int) bool { return s.Docs[i].ID >= idx })
+		if docIdx < len(s.Docs) {
+			resDocs = append(resDocs, s.Docs[docIdx])
 		}
 	}
 	return resDocs

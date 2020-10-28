@@ -19,9 +19,9 @@ type Page struct {
 	Title string
 }
 
-var urls = []Page{
-	{Url: "https://go.dev"},
-	{Url: "http://www.transflow.ru"},
+var urls = []string{
+	"https://go.dev",
+	"http://www.transflow.ru",
 }
 
 func (p Page) String() string {
@@ -31,13 +31,13 @@ func (p Page) Scan(url string) (data map[string]string, err error) {
 	return spider.Scan(url, depth)
 }
 
-func ScanPages(s Scanner, pp []Page) error {
+func ScanPages(s Scanner, i *index.Service, pp []string) error {
 	for _, p := range pp {
-		data, err := s.Scan(p.Url)
+		data, err := s.Scan(p)
 		if err != nil {
 			return err
 		}
-		index.Fill(data)
+		i.Fill(data)
 	}
 	return nil
 }
@@ -45,8 +45,9 @@ func ScanPages(s Scanner, pp []Page) error {
 func main() {
 	var str = flag.String("str", "", "Строка для поиска")
 	flag.Parse()
-	s := new(Page)
-	err := ScanPages(s, urls)
+	p := new(Page)
+	i := index.New()
+	err := ScanPages(p, i, urls)
 	if err != nil {
 		log.Printf("ошибка при сканировании: %v\n", err)
 		return
@@ -56,8 +57,8 @@ func main() {
 			fmt.Printf("\nВведите строку для поиска: ")
 			fmt.Scanln(str)
 		}
-		for i, d := range index.Find(*str) {
-			fmt.Printf("%d %v\n", i+1, Page{Url: d.Url, Title: d.Title})
+		for idx, d := range i.Find(*str) {
+			fmt.Printf("%d %v\n", idx+1, Page{Url: d.Url, Title: d.Title})
 		}
 		*str = ""
 	}
