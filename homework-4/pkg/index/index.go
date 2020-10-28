@@ -40,7 +40,7 @@ func (s *Service) Fill(data map[string]string) {
 func (s *Service) Find(str string) []Doc {
 	var resIdx []int
 	for k, v := range s.Index {
-		if k == str {
+		if k == strings.ToLower(str) {
 			resIdx = append(resIdx, v...)
 		}
 	}

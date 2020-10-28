@@ -6,12 +6,38 @@ import (
 
 func Test_Find(t *testing.T) {
 	i := New()
-	fixtures := make(map[string]string)
-	fixtures["url"] = "заголовок из нескольких слов"
+	fixtures := map[string]string{
+		"url1": "заголовок из нескольких слов",
+		"url2": "из нескольких слов",
+	}
 	i.Fill(fixtures)
-	want := 1
-	got := i.Find("заголовок")
-	if l := len(got); l != want {
-		t.Errorf("Find(): получили %d, должны были %d\n", l, want)
+
+	tests := []struct {
+		name string
+		s    string
+		want int
+	}{
+		{
+			name: "Тест №1",
+			s:    "заголовок",
+			want: 1,
+		},
+		{
+			name: "Тест №2",
+			s:    "нЕсКоЛьКИх",
+			want: 2,
+		},
+		{
+			name: "Тест №3",
+			s:    "абракадабра",
+			want: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := i.Find(tt.s); len(got) != tt.want {
+				t.Errorf("Find('%s') = %v, want %v", tt.s, len(got), tt.want)
+			}
+		})
 	}
 }
