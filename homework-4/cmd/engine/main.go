@@ -3,62 +3,62 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go-core-own/homework-4/pkg/crawler"
+	"go-core-own/homework-4/pkg/crawler/spider"
 	"go-core-own/homework-4/pkg/index"
-	"go-core-own/homework-4/pkg/spider"
 	"log"
 )
 
 const depth = 2
-
-type Scanner interface {
-	Scan(url string) (data map[string]string, err error)
-}
-
-type Page struct {
-	Url   string
-	Title string
-}
 
 var urls = []string{
 	"https://go.dev",
 	"http://www.transflow.ru",
 }
 
-func (p Page) String() string {
-	return fmt.Sprintf("%s: %s", p.Url, p.Title)
-}
-func (p Page) Scan(url string) (data map[string]string, err error) {
-	return spider.Scan(url, depth)
+type Engine struct {
+	crawler crawler.Scanner
+	index   index.Indexer
 }
 
-func ScanPages(s Scanner, i *index.Service, pp []string) error {
-	for _, p := range pp {
-		data, err := s.Scan(p)
-		if err != nil {
-			return err
-		}
-		i.Fill(data)
+func New() *Engine {
+	return &Engine{
+		crawler: spider.New(),
+		index:   index.New(),
 	}
+}
+
+func (e *Engine) ScanPage(url string, depth int) error {
+	data, err := e.crawler.Scan(url, depth)
+	if err != nil {
+		return err
+	}
+	e.index.Fill(data)
 	return nil
+}
+func (e *Engine) Find(str string) []crawler.Document {
+	return e.index.Find(str)
 }
 
 func main() {
 	var str = flag.String("str", "", "Строка для поиска")
 	flag.Parse()
-	p := new(Page)
-	i := index.New()
-	err := ScanPages(p, i, urls)
-	if err != nil {
-		log.Printf("ошибка при сканировании: %v\n", err)
-		return
+	e := New()
+	for _, p := range urls {
+		err := e.ScanPage(p, depth)
+		if err != nil {
+			log.Printf("ошибка при сканировании: %v\n", err)
+			continue
+		}
 	}
+	// поиск документов по строке ввода, либо по строке переданной флагом
 	for {
 		for *str == "" {
 			fmt.Printf("\nВведите строку для поиска: ")
 			fmt.Scanln(str)
 		}
-		for idx, d := range i.Find(*str) {
-			fmt.Printf("%d %v\n", idx+1, Page{Url: d.Url, Title: d.Title})
+		for i, d := range e.Find(*str) {
+			fmt.Printf("%d %v\n", i+1, d)
 		}
 		*str = ""
 	}

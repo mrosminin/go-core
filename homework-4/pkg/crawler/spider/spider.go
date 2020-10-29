@@ -3,18 +3,35 @@
 package spider
 
 import (
+	"go-core-own/homework-4/pkg/crawler"
+	"golang.org/x/net/html"
 	"net/http"
 	"strings"
-
-	"golang.org/x/net/html"
 )
+
+// Service - служба поискового робота.
+type Service struct{}
+
+// New - констрктор службы поискового робота.
+func New() *Service {
+	s := Service{}
+	return &s
+}
 
 // Scan осуществляет рекурсивный обход ссылок сайта, указанного в URL,
 // с учётом глубины перехода по ссылкам, переданной в depth.
-func Scan(url string, depth int) (data map[string]string, err error) {
-	data = make(map[string]string)
+func (s *Service) Scan(url string, depth int) (data []crawler.Document, err error) {
+	pages := make(map[string]string)
 
-	parse(url, url, depth, data)
+	parse(url, url, depth, pages)
+
+	for url, title := range pages {
+		item := crawler.Document{
+			URL:   url,
+			Title: title,
+		}
+		data = append(data, item)
+	}
 
 	return data, nil
 }
@@ -41,8 +58,18 @@ func parse(url, baseurl string, depth int, data map[string]string) error {
 
 	links := pageLinks(nil, page)
 	for _, link := range links {
-		if data[link] == "" && strings.HasPrefix(link, baseurl) {
+		// ссылка уже отсканирована
+		if data[link] != "" {
+			continue
+		}
+		// ссылка содержит базовый url полностью
+		if strings.HasPrefix(link, baseurl) {
 			parse(link, baseurl, depth-1, data)
+		}
+		// относительная ссылка
+		if strings.HasPrefix(link, "/") && len(link) > 1 {
+			next := baseurl + link[1:]
+			parse(next, baseurl, depth-1, data)
 		}
 	}
 
@@ -52,7 +79,7 @@ func parse(url, baseurl string, depth int, data map[string]string) error {
 // pageTitle осуществляет рекурсивный обход HTML-страницы и возвращает значение элемента <tittle>.
 func pageTitle(n *html.Node) string {
 	var title string
-	if n.Type == html.ElementNode && n.Data == "title" {
+	if n.Type == html.ElementNode && n.Data == "title" && n.FirstChild != nil {
 		return n.FirstChild.Data
 	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {

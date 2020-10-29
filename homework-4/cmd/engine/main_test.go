@@ -1,27 +1,44 @@
 package main
 
 import (
+	"go-core-own/homework-4/pkg/crawler/membot"
 	"go-core-own/homework-4/pkg/index"
-	"go-core-own/homework-4/pkg/stub"
 	"testing"
 )
 
-type StubType int
-
-func (st StubType) Scan(url string) (data map[string]string, err error) {
-	return stub.Scan()
-}
-
-func Test_Scanner(t *testing.T) {
-	stub := new(StubType)
-	i := index.New()
-	err := ScanPages(stub, i, []string{"http://..."})
-	if err != nil {
-		t.Fatalf("получена ошибка %v", err)
+func Test_Engine(t *testing.T) {
+	e := Engine{
+		crawler: membot.New(),
+		index:   index.New(),
 	}
-	want := 2
-	got := i.Find("трансфлоу")
-	if len(got) != want {
-		t.Errorf("Scan(): получили %d, должны были %d\n", len(got), want)
+	e.ScanPage("", depth)
+
+	tests := []struct {
+		name string
+		s    string
+		want int
+	}{
+		{
+			name: "Тест №1",
+			s:    "яНДЕКС",
+			want: 1,
+		},
+		{
+			name: "Тест №2",
+			s:    "google",
+			want: 1,
+		},
+		{
+			name: "Тест №3",
+			s:    "yahoo",
+			want: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := e.Find(tt.s); len(got) != tt.want {
+				t.Errorf("Engine('%s') got %v, want %v", tt.s, len(got), tt.want)
+			}
+		})
 	}
 }

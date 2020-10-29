@@ -1,16 +1,18 @@
 package index
 
 import (
+	"go-core-own/homework-4/pkg/crawler"
 	"testing"
 )
 
 func Test_Find(t *testing.T) {
-	i := New()
-	fixtures := map[string]string{
-		"url1": "заголовок из нескольких слов",
-		"url2": "из нескольких слов",
+	idx := New()
+	fixtures := []crawler.Document{
+		{URL: "url1", Title: "заголовок из нескольких слов"},
+		{URL: "url2", Title: "иЗ нЕсКоЛЬких сЛОв"},
+		{URL: "url3", Title: "_нескольких_слов_"},
 	}
-	i.Fill(fixtures)
+	idx.Fill(fixtures)
 
 	tests := []struct {
 		name string
@@ -35,7 +37,7 @@ func Test_Find(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := i.Find(tt.s); len(got) != tt.want {
+			if got := idx.Find(tt.s); len(got) != tt.want {
 				t.Errorf("Find('%s') = %v, want %v", tt.s, len(got), tt.want)
 			}
 		})
