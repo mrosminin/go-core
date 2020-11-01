@@ -18,6 +18,11 @@ func TestTree(t *testing.T) {
 		fixtures[i].ID = tree.Insert(fixtures[i])
 	}
 
+	/* Почему не работает через range - не понятно.
+	for _, d := range fixtures {
+		d.ID = tree.Insert(d)
+	}*/
+
 	for _, d := range fixtures {
 		fmt.Println(d.ID)
 
