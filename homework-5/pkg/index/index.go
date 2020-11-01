@@ -19,6 +19,7 @@ type Service struct {
 
 // New - конструктор
 func New() *Service {
+
 	return &Service{
 		Index: make(map[string][]int),
 		Docs:  &btree.Tree{},
@@ -29,7 +30,6 @@ func New() *Service {
 func (s *Service) Fill(data []crawler.Document) {
 	for _, d := range data {
 		id := s.Docs.Insert(d)
-		fmt.Println(id, d.Title)
 		ss := strings.Split(d.Title, " ")
 		for _, str := range ss {
 			str = strings.ToLower(str)
@@ -37,6 +37,7 @@ func (s *Service) Fill(data []crawler.Document) {
 				s.Index[str] = append(s.Index[str], id)
 			}
 		}
+		s.save()
 	}
 }
 
@@ -55,6 +56,32 @@ func (s *Service) Find(str string) []crawler.Document {
 		result = append(result, doc)
 	}
 	return result
+}
+
+func (s *Service) save() error {
+	f, err := os.Create("./file.txt")
+	if err != nil {
+		return err
+	}
+	jsonData, err := json.Marshal(s.Docs)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(f.Name(), []byte(jsonData), 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	/*data, err := ioutil.ReadFile(f.Name())
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Данные файла:\n%s\n", data)
+	// вариант используя io.Reader
+	file, err := os.Open(f.Name())
+	if err != nil {
+		log.Fatal(err)
+	}*/
+	return nil
 }
 
 // Проверка наличия в массиве элемента
