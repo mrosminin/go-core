@@ -31,7 +31,9 @@ func (s *Service) Fill(data []crawler.Document) {
 		ss := strings.Split(d.Title, " ")
 		for _, str := range ss {
 			str = strings.ToLower(str)
-			s.Index[str] = uniqueSlice(append(s.Index[str], d.ID))
+			if !arrayHasEl(s.Index[str], d.ID) {
+				s.Index[str] = append(s.Index[str], d.ID)
+			}
 		}
 	}
 	// Бессмысленная сортировка по заданию
@@ -54,14 +56,12 @@ func (s *Service) Find(str string) []crawler.Document {
 	return result
 }
 
-// Возвращает слайс с уникальным набором элементов
-func uniqueSlice(slice []int) (u []int) {
-	m := make(map[int]bool)
+// Проверка наличия в массиве элемента
+func arrayHasEl(slice []int, el int) bool {
 	for _, val := range slice {
-		if _, ok := m[val]; !ok {
-			m[val] = true
-			u = append(u, val)
+		if val == el {
+			return true
 		}
 	}
-	return u
+	return false
 }
