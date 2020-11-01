@@ -1,8 +1,9 @@
 package index
 
 import (
+	"fmt"
 	"go-core-own/homework-5/pkg/crawler"
-	"sort"
+	"go-core-own/homework-5/pkg/index/btree"
 	"strings"
 )
 
@@ -13,31 +14,30 @@ type Indexer interface {
 
 type Service struct {
 	Index map[string][]int
-	Docs  []crawler.Document
+	Docs  *btree.Tree
 }
 
 // New - конструктор
 func New() *Service {
 	return &Service{
 		Index: make(map[string][]int),
+		Docs:  &btree.Tree{},
 	}
 }
 
 // Fill - создание обратного индекса
 func (s *Service) Fill(data []crawler.Document) {
 	for _, d := range data {
-		d.ID = len(s.Docs)
-		s.Docs = append(s.Docs, d)
+		id := s.Docs.Insert(d)
+		fmt.Println(id, d.Title)
 		ss := strings.Split(d.Title, " ")
 		for _, str := range ss {
 			str = strings.ToLower(str)
-			if !arrayHasEl(s.Index[str], d.ID) {
-				s.Index[str] = append(s.Index[str], d.ID)
+			if !arrayHasEl(s.Index[str], id) {
+				s.Index[str] = append(s.Index[str], id)
 			}
 		}
 	}
-	// Бессмысленная сортировка по заданию
-	sort.Slice(s.Docs, func(i, j int) bool { return s.Docs[i].ID < s.Docs[j].ID })
 }
 
 // Find - поиск страниц по слову в заголоке
@@ -48,10 +48,11 @@ func (s *Service) Find(str string) []crawler.Document {
 	}
 	var result []crawler.Document
 	for _, id := range ids {
-		idx := sort.Search(len(s.Docs), func(i int) bool { return s.Docs[i].ID >= id })
-		if idx < len(s.Docs) {
-			result = append(result, s.Docs[idx])
+		doc, err := s.Docs.Find(id)
+		if err != nil {
+			continue
 		}
+		result = append(result, doc)
 	}
 	return result
 }
