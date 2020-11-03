@@ -2,6 +2,7 @@
 package btree
 
 import (
+	"encoding/json"
 	"errors"
 	"go-core-own/homework-6/pkg/scanner"
 )
@@ -20,6 +21,9 @@ type Element struct {
 
 // Insert - вставка элемента в дерево
 func (t *Tree) Insert(doc scanner.Document) (id int) {
+	if id = t.exists(doc); id != 0 {
+		return id
+	}
 	t.lastID = t.lastID + 1
 	doc.ID = t.lastID
 	e := &Element{Doc: doc}
@@ -69,4 +73,32 @@ func find(el *Element, id int) *Element {
 		return find(el.right, id)
 	}
 	return find(el.left, id)
+}
+
+// Сериализация дерева
+func (t *Tree) Serialize() (jsonData []byte, err error) {
+	var docs []scanner.Document
+	for i := 0; i < t.lastID; i++ {
+		doc, err := t.Find(i)
+		if err != nil {
+			continue
+		}
+		docs = append(docs, doc)
+	}
+	jsonData, err = json.Marshal(docs)
+	if err != nil {
+		return []byte{}, err
+	}
+	return jsonData, nil
+}
+
+// Проверка наличия документа в дереве, если есть возвращает id документа
+func (t *Tree) exists(newDoc scanner.Document) (id int) {
+	for i := 0; i < t.lastID; i++ {
+		doc, _ := t.Find(i)
+		if doc.Title == newDoc.Title && doc.URL == newDoc.URL {
+			return doc.ID
+		}
+	}
+	return 0
 }
