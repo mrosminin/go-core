@@ -26,7 +26,12 @@ type gosearch struct {
 // Определяются зависимости поисковый движок, сканер сайтов, служба индексирования, служба хранения
 func new() (*gosearch, error) {
 	gs := gosearch{
-		sites: []string{"https://go.dev", "http://www.transflow.ru"},
+		sites: []string{
+			"https://go.dev",
+			"http://www.transflow.ru",
+			"https://www.newsru.com",
+			"https://www.gov-murman.ru/",
+		},
 		depth: 2,
 
 		index:   index.New(),
@@ -50,10 +55,15 @@ func main() {
 		return
 	}
 	// запуска скинирования страниц, указанных в конструкторе поисковика
-	// пока идет сканирование движок выдает резульаты из загруженных из долговременного хранилища
+	// пока идет сканирование движок выдает результаты из загруженных из долговременного хранилища
 	go func() {
-		data := gs.scanner.ScanPages(gs.sites, gs.depth)
-		gs.engine.Store(data)
+		for _, s := range gs.sites {
+			data, err := gs.scanner.Scan(s, gs.depth)
+			if err != nil {
+				return
+			}
+			gs.engine.Store(data)
+		}
 	}()
 
 	var query string

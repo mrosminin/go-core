@@ -1,7 +1,7 @@
 package membot
 
 import (
-	"go-core-own/homework-6/pkg/crawler"
+	"go-core-own/homework-6/pkg/scanner"
 )
 
 // Service - имитация служба поискового робота.

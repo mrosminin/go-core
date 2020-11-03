@@ -2,7 +2,6 @@ package scanner
 
 import (
 	"fmt"
-	"log"
 )
 
 // Document - документ, веб-страница, полученная поисковым роботом.
@@ -29,17 +28,4 @@ type Service struct {
 
 func New(sc Interface) *Service {
 	return &Service{sc}
-}
-
-// ScanPages - метод сканированияя страниц
-func (s *Service) ScanPages(urls []string, depth int) (data []Document) {
-	for _, p := range urls {
-		dd, err := s.Scan(p, depth)
-		if err != nil {
-			log.Printf("ошибка при сканировании: %v\n", err)
-			continue
-		}
-		data = append(data, dd...)
-	}
-	return data
 }
