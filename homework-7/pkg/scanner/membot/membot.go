@@ -1,13 +1,12 @@
+// membot реализует имитацию поискового робота
 package membot
 
 import (
 	"go-core-own/homework-7/pkg/scanner"
 )
 
-// Service - имитация служба поискового робота.
 type Service struct{}
 
-// New - констрктор имитации службы поискового робота.
 func New() *Service {
 	s := Service{}
 	return &s

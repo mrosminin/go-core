@@ -1,3 +1,4 @@
+// diskstor - служба хранения данных на диске
 package diskstor
 
 import (
@@ -5,7 +6,6 @@ import (
 	"os"
 )
 
-// DStorage - служба хранения данных на диске
 type Diskstor struct {
 	file *os.File
 }
@@ -24,7 +24,7 @@ func New() (*Diskstor, error) {
 	return &Diskstor{file: f}, nil
 }
 
-// Save - пишет json в файл
+// Save - пишет строку в файл
 func (ds *Diskstor) Save(p []byte) error {
 	err := ioutil.WriteFile(ds.file.Name(), p, 0666)
 	if err != nil {
@@ -33,7 +33,7 @@ func (ds *Diskstor) Save(p []byte) error {
 	return nil
 }
 
-// Load - читает json из файла
+// Load - читает строку из файла
 func (ds *Diskstor) Load() (p []byte, err error) {
 	f, err := os.Open(ds.file.Name())
 	defer f.Close()

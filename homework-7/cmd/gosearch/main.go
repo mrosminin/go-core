@@ -13,19 +13,33 @@ import (
 
 // Поисковик GOSearch
 type gosearch struct {
-	engine  *engine.Service
-	scanner *scanner.Service
+	scanner scanner.Interface
 	index   *index.Service
 	storage *storage.Service
+	engine  *engine.Service
 
 	sites []string
 	depth int
 }
 
 // Конструктор поисковика
-// Определяются зависимости поисковый движок, сканер сайтов, служба индексирования, служба хранения
 func new() (*gosearch, error) {
-	gs := gosearch{
+	// Определяются зависимости поисковый движок, сканер сайтов, служба индексирования, служба хранения
+	idx := index.New()
+	sc := spider.New()
+	sl, err := diskstor.New()
+	if err != nil {
+		return nil, err
+	}
+	st := storage.New(sl)
+	en := engine.New(idx, st)
+
+	return &gosearch{
+		scanner: sc,
+		storage: st,
+		engine:  en,
+		index:   idx,
+
 		sites: []string{
 			"https://go.dev",
 			"http://www.transflow.ru",
@@ -33,19 +47,7 @@ func new() (*gosearch, error) {
 			"https://www.gov-murman.ru/",
 		},
 		depth: 2,
-
-		index:   index.New(),
-		scanner: scanner.New(spider.New()),
-	}
-
-	sl, err := diskstor.New()
-	if err != nil {
-		return nil, err
-	}
-	gs.storage = storage.New(sl)
-
-	gs.engine = engine.New(gs.index, gs.storage)
-	return &gs, nil
+	}, nil
 }
 
 func main() {

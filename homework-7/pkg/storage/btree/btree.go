@@ -19,7 +19,7 @@ type Element struct {
 	Doc         scanner.Document
 }
 
-// Insert - вставка элемента в дерево
+// Insert вставляет элемент в дерево
 func (t *Tree) Insert(doc scanner.Document) (id int) {
 	if id = t.exists(doc); id != 0 {
 		return id
@@ -53,7 +53,7 @@ func insert(node *Element, new *Element) {
 	}
 }
 
-// Find - поиск элемента в дереве по ID документа, возвращает документ
+// Find находит элемент в дереве по ID документа, возвращает документ
 func (t *Tree) Find(id int) (scanner.Document, error) {
 	el := find(t.root, id)
 	if el == nil {
@@ -75,7 +75,7 @@ func find(el *Element, id int) *Element {
 	return find(el.left, id)
 }
 
-// Сериализация дерева
+// Serialize сериализует дерево в json строку
 func (t *Tree) Serialize() (jsonData []byte, err error) {
 	var docs []scanner.Document
 	for i := 0; i < t.lastID; i++ {

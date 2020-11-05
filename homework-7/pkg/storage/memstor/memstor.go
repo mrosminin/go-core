@@ -1,16 +1,14 @@
+// memstor - служба сохранения результатов сканирования в памяти (заглушка для тестов)
 package memstor
 
-// MStorage - служба сохранения результатов сканирования в памяти (заглушка для тестов)
 type Memstor struct {
 	memory []byte
 }
 
-// New - конструктор службы
 func New() *Memstor {
 	return &Memstor{}
 }
 
-// Save - пишет в переменную
 func (ms *Memstor) Save(p []byte) error {
 	ms.memory = p
 	return nil

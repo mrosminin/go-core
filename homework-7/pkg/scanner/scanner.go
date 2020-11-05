@@ -1,3 +1,5 @@
+// scanner - служба поискового робота
+// Задача - сканировать страницу, находить на ней ссылки
 package scanner
 
 import (
@@ -16,12 +18,10 @@ func (d Document) String() string {
 	return fmt.Sprintf("%s: %s", d.URL, d.Title)
 }
 
-// Интерфейс поискового робота.
 type Interface interface {
 	Scan(url string, depth int, ch chan<- []Document)
 }
 
-// Cлужба скинирования сайтов
 type Service struct {
 	Interface
 }

@@ -1,4 +1,4 @@
-// Storage - служба хранения данных
+// storage - служба хранения данных
 
 package storage
 
@@ -17,7 +17,6 @@ type Service struct {
 	Docs *btree.Tree
 }
 
-// New - конструктор службы хранения
 func New(sl SaveLoader) *Service {
 	return &Service{
 		SaveLoader: sl,
@@ -25,7 +24,7 @@ func New(sl SaveLoader) *Service {
 	}
 }
 
-// Export - экспорт данных хранилища документов в json строке
+// Export экспортирует данные хранилища документов в формате json строки
 func (s *Service) Export() {
 	jsonData, err := s.Docs.Serialize()
 	if err != nil {

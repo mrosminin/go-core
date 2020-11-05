@@ -1,7 +1,7 @@
-// Engine - служба поискового движка, требует службы индексирования результатов поиска и хранения
-// Функции движка:
-// 1. Выдача документов по строке запроса (ищет индексы в службе индексирования, а затем выдает необходимые документы из хранилища)
-// 2. Загрузка документов из долговременного хранилища и передача их службам индексирования и хранения документов
+// engine - служба поискового движка, требует службы индексирования результатов поиска и хранения
+// Функции службы:
+// 1. Выдача документов по строке запроса (берет id в службе индексирования, а затем выдает необходимые документы из хранилища)
+// 2. Импорт предыдущих результатов сканирования
 package engine
 
 import (
@@ -12,13 +12,11 @@ import (
 	"log"
 )
 
-// Service - служба поискового движка
 type Service struct {
 	index   *index.Service
 	storage *storage.Service
 }
 
-// New - конструктор поискового движка
 func New(index *index.Service, storage *storage.Service) *Service {
 	s := &Service{
 		index:   index,
@@ -35,10 +33,10 @@ func (s *Service) init() {
 		log.Printf("ошибка чтения из хранилища: %v\n", err)
 		return
 	}
-	go s.Import(jsonData)
+	s.Import(jsonData)
 }
 
-// Store - сохранение найденных документов (в индексе, в хранилище документов в памяти - дереве и в долгосрочном хранилище)
+// Store сохраняет документы в хранилище, передает на индексирование, экспортирует в долгосрочное хранилище
 func (s *Service) Store(data []scanner.Document) {
 	for _, d := range data {
 		d.ID = s.storage.Docs.Insert(d)
@@ -47,7 +45,7 @@ func (s *Service) Store(data []scanner.Document) {
 	s.storage.Export()
 }
 
-// Find - метод выдачи результатов поискового запроса (id документов из индекса, сами документы из хранилища)
+// Find выдает результаты поискового запроса (id документов берутся из службы индексирования, сами документы из хранилища)
 func (s *Service) Find(q string) []scanner.Document {
 	ids := s.index.Find(q)
 	var result []scanner.Document
@@ -61,7 +59,7 @@ func (s *Service) Find(q string) []scanner.Document {
 	return result
 }
 
-// Import - импорт данных из json строки
+// Import декодирует данные из json строки, передает на хранение
 func (s *Service) Import(p []byte) error {
 	var docs []scanner.Document
 	err := json.Unmarshal(p, &docs)

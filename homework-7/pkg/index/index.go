@@ -1,3 +1,5 @@
+// index - служба индексирования
+// Задача - вести ассоциативный массив слово: массив id документов в хранилище, в которых встречается это слово
 package index
 
 import (
@@ -5,45 +7,36 @@ import (
 	"strings"
 )
 
-type Interface interface {
-	Fill(data []scanner.Document)
-	Find(str string) []scanner.Document
-	Import(p []byte) error
-	Export() (p []byte, err error)
-}
-
-// Service - служба индексирования
 type Service struct {
 	Index map[string][]int
 }
 
-// New - конструктор
 func New() *Service {
 	return &Service{
 		Index: make(map[string][]int),
 	}
 }
 
-// Insert - создание обратного индекса для документа. У документа уже есть ID
+// Insert добавляет в индекс отдельные слова из заголовка документа. У документа уже есть ID
 func (s *Service) Insert(d scanner.Document) {
 	ss := strings.Split(d.Title, " ")
 	for _, str := range ss {
 		str = strings.ToLower(str)
-		if !arrayHasEl(s.Index[str], d.ID) {
+		if !contains(s.Index[str], d.ID) {
 			s.Index[str] = append(s.Index[str], d.ID)
 		}
 	}
 }
 
-// Find - поиск страниц по слову в заголоке
+// Find возвращает массив id документов, в которых было найдено слово
 func (s *Service) Find(q string) []int {
 	return s.Index[strings.ToLower(q)]
 }
 
-// Проверка наличия в массиве элемента
-func arrayHasEl(slice []int, el int) bool {
-	for _, val := range slice {
-		if val == el {
+// contains - проверка наличия в массиве элемента
+func contains(s []int, e int) bool {
+	for _, v := range s {
+		if v == e {
 			return true
 		}
 	}
