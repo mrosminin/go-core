@@ -6,8 +6,10 @@ import (
 )
 
 type Interface interface {
-	Insert(data []scanner.Document)
+	Fill(data []scanner.Document)
 	Find(str string) []scanner.Document
+	Import(p []byte) error
+	Export() (p []byte, err error)
 }
 
 // Service - служба индексирования
