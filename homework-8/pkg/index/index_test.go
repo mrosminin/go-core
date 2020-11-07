@@ -21,6 +21,9 @@ func TestMain(m *testing.M) {
 }
 
 func TestService_Add(t *testing.T) {
+	if testing.Short() {
+		t.Skip("TestService_Add - интегрцаионный тест пропущен")
+	}
 	for _, d := range fixtures {
 		s.Add(d)
 	}

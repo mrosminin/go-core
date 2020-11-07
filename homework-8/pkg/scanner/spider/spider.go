@@ -90,7 +90,7 @@ func pageLinks(links []string, n *html.Node) []string {
 	if n.Type == html.ElementNode && n.Data == "a" {
 		for _, a := range n.Attr {
 			if a.Key == "href" {
-				if !sliceContains(links, a.Val) {
+				if !contains(links, a.Val) {
 					links = append(links, a.Val)
 				}
 			}
@@ -102,8 +102,8 @@ func pageLinks(links []string, n *html.Node) []string {
 	return links
 }
 
-// sliceContains возвращает true если массив содержит переданное значение
-func sliceContains(slice []string, value string) bool {
+// contains возвращает true если массив содержит переданное значение
+func contains(slice []string, value string) bool {
 	for _, v := range slice {
 		if v == value {
 			return true

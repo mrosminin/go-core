@@ -34,8 +34,8 @@ func (s *Service) Find(q string) []int {
 }
 
 // contains - проверка наличия в массиве элемента
-func contains(s []int, e int) bool {
-	for _, v := range s {
+func contains(slice []int, e int) bool {
+	for _, v := range slice {
 		if v == e {
 			return true
 		}
