@@ -18,12 +18,10 @@ func (d Document) String() string {
 	return fmt.Sprintf("%s: %s", d.URL, d.Title)
 }
 
-// Интерфейс поискового робота.
 type Interface interface {
-	Scan(url string, depth int) ([]Document, error)
+	Scan(url string, depth int, ch chan<- []Document)
 }
 
-// Служба скинирования сайтов
 type Service struct {
 	Interface
 }
