@@ -66,7 +66,7 @@ func main() {
 			if err != nil {
 				continue
 			}
-			go gs.engine.Store(data)
+			gs.engine.Store(data)
 		}
 	}()
 
