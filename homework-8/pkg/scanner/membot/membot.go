@@ -7,14 +7,8 @@ import (
 
 type Service struct{}
 
-func New() *Service {
-	s := Service{}
-	return &s
-}
-
 // Scan возвращает заранее подготовленный набор данных
-func (s *Service) Scan(url string, depth int, ch chan<- []scanner.Document) {
-
+func (s *Service) Scan(string, int) ([]scanner.Document, error) {
 	data := []scanner.Document{
 		{
 			ID:    0,
@@ -28,5 +22,5 @@ func (s *Service) Scan(url string, depth int, ch chan<- []scanner.Document) {
 		},
 	}
 
-	ch <- data
+	return data, nil
 }

@@ -11,8 +11,7 @@ type Diskstor struct {
 }
 
 // New - конструктор службы, создает файл для хранения данных
-func New() (*Diskstor, error) {
-	filename := "./diskstor.txt"
+func New(filename string) (*Diskstor, error) {
 	var f *os.File
 	f, err := os.Open(filename)
 	if err != nil {

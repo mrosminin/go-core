@@ -11,18 +11,14 @@ import (
 
 type Service struct{}
 
-func New() *Service {
-	s := Service{}
-	return &s
-}
-
 // Scan осуществляет рекурсивный обход ссылок сайта, указанного в URL,
 // с учётом глубины перехода по ссылкам, переданной в depth.
-func (s *Service) Scan(url string, depth int, ch chan<- []scanner.Document) {
+func (s *Service) Scan(url string, depth int) (data []scanner.Document, err error) {
 	pages := make(map[string]string)
-	var data []scanner.Document
-
-	parse(url, url, depth, pages)
+	err = parse(url, url, depth, pages)
+	if err != nil {
+		return []scanner.Document{}, err
+	}
 
 	for url, title := range pages {
 		item := scanner.Document{
@@ -31,7 +27,7 @@ func (s *Service) Scan(url string, depth int, ch chan<- []scanner.Document) {
 		}
 		data = append(data, item)
 	}
-	ch <- data
+	return data, nil
 }
 
 // parse рекурсивно обходит ссылки на странице, переданной в url.

@@ -10,7 +10,7 @@ import (
 // Tree - Двоичное дерево поиска
 type Tree struct {
 	root   *Element
-	lastID int
+	nextID int
 }
 
 // Element - элемент дерева
@@ -21,18 +21,18 @@ type Element struct {
 
 // Insert вставляет элемент в дерево
 func (t *Tree) Insert(doc scanner.Document) (id int) {
-	if id = t.exists(doc); id != 0 {
+	if id = t.exists(doc); id != -1 {
 		return id
 	}
-	t.lastID = t.lastID + 1
-	doc.ID = t.lastID
+	doc.ID = t.nextID
+	t.nextID = t.nextID + 1
 	e := &Element{Doc: doc}
 	if t.root == nil {
 		t.root = e
-		return t.lastID
+		return doc.ID
 	}
 	insert(t.root, e)
-	return t.lastID
+	return doc.ID
 }
 
 // inset рекурсивно вставляет элемент в нужный уровень дерева
@@ -78,7 +78,7 @@ func find(el *Element, id int) *Element {
 // Serialize сериализует дерево в json строку
 func (t *Tree) Serialize() (jsonData []byte, err error) {
 	var docs []scanner.Document
-	for i := 0; i < t.lastID; i++ {
+	for i := 0; i < t.nextID; i++ {
 		doc, err := t.Find(i)
 		if err != nil {
 			continue
@@ -94,11 +94,11 @@ func (t *Tree) Serialize() (jsonData []byte, err error) {
 
 // Проверка наличия документа в дереве, если есть возвращает id документа
 func (t *Tree) exists(newDoc scanner.Document) (id int) {
-	for i := 0; i < t.lastID; i++ {
+	for i := 0; i < t.nextID; i++ {
 		doc, _ := t.Find(i)
-		if doc.Title == newDoc.Title && doc.URL == newDoc.URL {
+		if doc.Title == newDoc.Title || doc.URL == newDoc.URL {
 			return doc.ID
 		}
 	}
-	return 0
+	return -1
 }

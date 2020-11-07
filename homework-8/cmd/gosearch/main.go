@@ -11,7 +11,7 @@ import (
 	"log"
 )
 
-// Поисковик GOSearch
+// Поисковик GoSearch
 type gosearch struct {
 	scanner scanner.Interface
 	index   *index.Service
@@ -24,22 +24,7 @@ type gosearch struct {
 
 // Конструктор поисковика
 func new() (*gosearch, error) {
-	// Определяются зависимости поисковый движок, сканер сайтов, служба индексирования, служба хранения
-	idx := index.New()
-	sc := spider.New()
-	sl, err := diskstor.New()
-	if err != nil {
-		return nil, err
-	}
-	st := storage.New(sl)
-	en := engine.New(idx, st)
-
-	return &gosearch{
-		scanner: sc,
-		storage: st,
-		engine:  en,
-		index:   idx,
-
+	gs := gosearch{
 		sites: []string{
 			"https://go.dev",
 			"http://www.transflow.ru",
@@ -47,7 +32,23 @@ func new() (*gosearch, error) {
 			"https://www.gov-murman.ru/",
 		},
 		depth: 2,
-	}, nil
+
+		// Определяются зависимости сканер сайтов, служба индексирования
+		scanner: &spider.Service{},
+		index:   index.New(),
+	}
+
+	// Служба хранения данных
+	sl, err := diskstor.New("./diskstor.txt")
+	if err != nil {
+		return nil, err
+	}
+	gs.storage = storage.New(sl)
+
+	// Поисковый движок
+	gs.engine = engine.New(gs.index, gs.storage)
+
+	return &gs, nil
 }
 
 func main() {
@@ -56,15 +57,17 @@ func main() {
 		log.Printf("%v\n", err)
 		return
 	}
+
 	// запуска скинирования страниц, указанных в конструкторе поисковика
 	// пока идет сканирование движок выдает результаты из загруженных из долговременного хранилища
 	go func() {
-		ch := make(chan []scanner.Document, len(gs.sites))
 		for _, s := range gs.sites {
-			go gs.scanner.Scan(s, gs.depth, ch)
-			go gs.engine.Store(<-ch)
+			data, err := gs.scanner.Scan(s, gs.depth)
+			if err != nil {
+				continue
+			}
+			go gs.engine.Store(data)
 		}
-		close(ch)
 	}()
 
 	var query string

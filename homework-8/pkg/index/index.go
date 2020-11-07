@@ -18,7 +18,7 @@ func New() *Service {
 }
 
 // Insert добавляет в индекс отдельные слова из заголовка документа. У документа уже есть ID
-func (s *Service) Insert(d scanner.Document) {
+func (s *Service) Add(d scanner.Document) {
 	ss := strings.Split(d.Title, " ")
 	for _, str := range ss {
 		str = strings.ToLower(str)

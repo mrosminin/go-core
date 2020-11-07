@@ -19,13 +19,5 @@ func (d Document) String() string {
 }
 
 type Interface interface {
-	Scan(url string, depth int, ch chan<- []Document)
-}
-
-type Service struct {
-	Interface
-}
-
-func New(sc Interface) *Service {
-	return &Service{sc}
+	Scan(string, int) ([]Document, error)
 }

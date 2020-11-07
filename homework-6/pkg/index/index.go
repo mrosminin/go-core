@@ -6,10 +6,8 @@ import (
 )
 
 type Interface interface {
-	Fill(data []scanner.Document)
+	Add(data []scanner.Document)
 	Find(str string) []scanner.Document
-	Import(p []byte) error
-	Export() (p []byte, err error)
 }
 
 // Service - служба индексирования
@@ -25,7 +23,7 @@ func New() *Service {
 }
 
 // Insert - создание обратного индекса для документа. У документа уже есть ID
-func (s *Service) Insert(d scanner.Document) {
+func (s *Service) Add(d scanner.Document) {
 	ss := strings.Split(d.Title, " ")
 	for _, str := range ss {
 		str = strings.ToLower(str)
