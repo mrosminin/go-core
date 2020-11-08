@@ -15,7 +15,7 @@ type Service struct{}
 // с учётом глубины перехода по ссылкам, переданной в depth.
 func (s *Service) Scan(url string, depth int) (data []scanner.Document, err error) {
 	pages := make(map[string]string)
-	err = parse(url, url, depth, pages)
+	err = parse(&net{}, url, url, depth, pages)
 	if err != nil {
 		return []scanner.Document{}, err
 	}
@@ -34,16 +34,12 @@ func (s *Service) Scan(url string, depth int) (data []scanner.Document, err erro
 // Глубина рекурсии задаётся в depth.
 // Каждая найденная ссылка записывается в ассоциативный массив
 // data вместе с названием страницы.
-func parse(url, baseurl string, depth int, data map[string]string) error {
+func parse(n Interface, url, baseurl string, depth int, data map[string]string) error {
 	if depth == 0 {
 		return nil
 	}
 
-	response, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	page, err := html.Parse(response.Body)
+	page, err := n.Page(url)
 	if err != nil {
 		return err
 	}
@@ -58,12 +54,12 @@ func parse(url, baseurl string, depth int, data map[string]string) error {
 		}
 		// ссылка содержит базовый url полностью
 		if strings.HasPrefix(link, baseurl) {
-			parse(link, baseurl, depth-1, data)
+			parse(n, link, baseurl, depth-1, data)
 		}
 		// относительная ссылка
 		if strings.HasPrefix(link, "/") && len(link) > 1 {
-			next := baseurl + link[1:]
-			parse(next, baseurl, depth-1, data)
+			next := baseurl + link
+			parse(n, next, baseurl, depth-1, data)
 		}
 	}
 
@@ -110,4 +106,25 @@ func contains(slice []string, value string) bool {
 		}
 	}
 	return false
+}
+
+// Интерфейс для подмены зависимости от сети
+type Interface interface {
+	Page(url string) (*html.Node, error)
+}
+
+type net struct{}
+
+// page получает страницу по ссылке и раскодирует ее
+func (n *net) Page(url string) (*html.Node, error) {
+	response, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	page, err := html.Parse(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return page, nil
 }
