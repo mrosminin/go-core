@@ -34,7 +34,7 @@ func new() (*gosearch, error) {
 		depth: 2,
 
 		// Определяются зависимости сканер сайтов, служба индексирования
-		scanner: &spider.Service{},
+		scanner: spider.New(&spider.Net{}),
 		index:   index.New(),
 	}
 

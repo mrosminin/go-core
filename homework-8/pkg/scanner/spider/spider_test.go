@@ -1,6 +1,7 @@
 package spider
 
 import (
+	"go-core-own/homework-8/pkg/scanner"
 	"golang.org/x/net/html"
 	"reflect"
 	"testing"
@@ -116,5 +117,28 @@ func Test_parse(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("parse(). pages = %v, want %v", got, want)
 	}
+}
 
+func TestService_Scan(t *testing.T) {
+	s := Service{&fake{}}
+	got, _ := s.Scan("www.site.ru", 2)
+	want := []scanner.Document{
+		scanner.Document{ID: 0, URL: "www.site.ru", Title: "Заголовок", Body: ""},
+		scanner.Document{ID: 0, URL: "www.site.ru/link1", Title: "Заголовок", Body: ""},
+		scanner.Document{ID: 0, URL: "www.site.ru/link2", Title: "Заголовок", Body: ""},
+		scanner.Document{ID: 0, URL: "www.site.ru/link3", Title: "Заголовок", Body: ""},
+	}
+	for _, wd := range want {
+		found := false
+		for _, gd := range got {
+			if reflect.DeepEqual(wd, gd) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("Scan() = %v, want %v", got, want)
+			break
+		}
+	}
 }

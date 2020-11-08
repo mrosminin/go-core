@@ -9,13 +9,19 @@ import (
 	"strings"
 )
 
-type Service struct{}
+type Service struct {
+	Interface
+}
+
+func New(n Interface) *Service {
+	return &Service{n}
+}
 
 // Scan осуществляет рекурсивный обход ссылок сайта, указанного в URL,
 // с учётом глубины перехода по ссылкам, переданной в depth.
 func (s *Service) Scan(url string, depth int) (data []scanner.Document, err error) {
 	pages := make(map[string]string)
-	err = parse(&net{}, url, url, depth, pages)
+	err = parse(s.Interface, url, url, depth, pages)
 	if err != nil {
 		return []scanner.Document{}, err
 	}
@@ -113,10 +119,10 @@ type Interface interface {
 	Page(url string) (*html.Node, error)
 }
 
-type net struct{}
+type Net struct{}
 
 // page получает страницу по ссылке и раскодирует ее
-func (n *net) Page(url string) (*html.Node, error) {
+func (n *Net) Page(url string) (*html.Node, error) {
 	response, err := http.Get(url)
 	if err != nil {
 		return nil, err
