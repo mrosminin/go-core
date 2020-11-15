@@ -123,7 +123,7 @@ func TestTree_Serialize(t1 *testing.T) {
 	}
 }
 
-func BenchmarkTree(b *testing.B) {
+func BenchmarkTree_InsertFind(b *testing.B) {
 	s := Tree{}
 	for i := 0; i < b.N; i++ {
 		id := s.Insert(scanner.Document{

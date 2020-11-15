@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func BenchmarkTree(b *testing.B) {
+func BenchmarkSlice_InsertFind(b *testing.B) {
 	s := Slice{}
 	for i := 0; i < b.N; i++ {
 		id := s.Insert(scanner.Document{

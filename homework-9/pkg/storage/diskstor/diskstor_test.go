@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func BenchmarkDiskstor(b *testing.B) {
+func BenchmarkDiskstor_SaveLoad(b *testing.B) {
 	s, err := New("benchmark.txt")
 	if err != nil {
 		log.Fatal(err)
