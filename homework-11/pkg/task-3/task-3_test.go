@@ -1,7 +1,6 @@
 package task_3
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -11,7 +10,6 @@ type mem struct {
 
 func (m *mem) Write(p []byte) (n int, err error) {
 	m.value += string(p)
-	fmt.Println(m.value)
 	return len(p), nil
 }
 

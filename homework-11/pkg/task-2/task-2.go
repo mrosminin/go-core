@@ -10,7 +10,7 @@ type customer struct {
 	Age  int
 }
 
-// MaxAge возвращает объекта самого старого покупателя или сотрудника
+// maxAge возвращает объекта самого старого покупателя или сотрудника
 func maxAge(pp ...interface{}) interface{} {
 	var person interface{}
 	var max int
