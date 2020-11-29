@@ -26,45 +26,38 @@ import (
 type player struct {
 	name  string
 	score int
-	sync  chan struct{}
+	sync  chan string
 }
 
 func (p *player) play(g *game, opponent *player) {
-	for range p.sync {
-		g.mux.Lock()
-		if g.state == "" || g.state == "pong" {
-			g.state = "ping"
-		} else {
-			g.state = "pong"
-		}
-		fmt.Println(p.name + " " + g.state)
-		g.mux.Unlock()
-
+	for val := range p.sync {
+		fmt.Println(p.name + " " + val)
 		if accuracy := rand.Intn(10); accuracy > 7 {
 			fmt.Println("Score!!!")
 			p.score++
 			if p.score > 10 {
-				g.end <- struct{}{}
-				return
+				g.ch <- "end"
 			}
-			g.ch <- "stop"
-		} else {
-			opponent.sync <- struct{}{}
+		}
+		if val == "ping" {
+			opponent.sync <- "pong"
+		}
+		if val == "pong" {
+			opponent.sync <- "ping"
 		}
 	}
 }
 
 type game struct {
-	state string
-	mux   sync.Mutex
-
 	player1 *player
 	player2 *player
-	ch      chan string
-	end     chan struct{}
+
+	ch chan string
+	wg *sync.WaitGroup
 }
 
 func (g *game) start() {
+	defer g.wg.Done()
 	for {
 		val := <-g.ch
 		if val == "begin" {
@@ -74,17 +67,20 @@ func (g *game) start() {
 
 		}
 		if val == "stop" {
-			g.state = ""
 			g.serve()
+		}
+		if val == "end" {
+			fmt.Printf("%s %d : %d %s", g.player1.name, g.player1.score, g.player2.score, g.player2.name)
+			break
 		}
 	}
 }
 
 func (g *game) serve() {
 	if order := rand.Intn(2); order == 0 {
-		g.player1.sync <- struct{}{}
+		g.player1.sync <- "ping"
 	} else {
-		g.player2.sync <- struct{}{}
+		g.player2.sync <- "ping"
 	}
 }
 
@@ -94,19 +90,18 @@ func main() {
 	g := game{
 		player1: &player{
 			name: "Player1",
-			sync: make(chan struct{}),
+			sync: make(chan string),
 		},
 		player2: &player{
 			name: "Player2",
-			sync: make(chan struct{}),
+			sync: make(chan string),
 		},
-		end: make(chan struct{}),
-		ch:  make(chan string),
+		ch: make(chan string),
+		wg: &sync.WaitGroup{},
 	}
+	g.wg.Add(1)
 	go g.start()
 	g.ch <- "begin"
 
-	<-g.end
-	fmt.Printf("%s %d : %d %s", g.player1.name, g.player1.score, g.player2.score, g.player2.name)
-
+	g.wg.Wait()
 }
