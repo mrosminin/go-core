@@ -5,12 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"go-core-own/homework-13/pkg/scanner"
+	"sync"
 )
 
 // Tree - Двоичное дерево поиска
 type Tree struct {
 	root   *Element
 	nextID int
+
+	mux *sync.Mutex
 }
 
 // Element - элемент дерева
@@ -19,8 +22,17 @@ type Element struct {
 	Doc         scanner.Document
 }
 
+func New() *Tree {
+	return &Tree{
+		mux: &sync.Mutex{},
+	}
+}
+
 // Insert вставляет элемент в дерево
 func (t *Tree) Insert(doc scanner.Document) (id int) {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+
 	if id = t.exists(doc); id != -1 {
 		return id
 	}
@@ -77,6 +89,9 @@ func find(el *Element, id int) *Element {
 
 // Serialize сериализует дерево в json строку
 func (t *Tree) Json() (jsonData []byte, err error) {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+
 	var docs []scanner.Document
 	for i := 0; i < t.nextID; i++ {
 		doc, err := t.Find(i)

@@ -5,10 +5,12 @@ package index
 import (
 	"go-core-own/homework-13/pkg/scanner"
 	"strings"
+	"sync"
 )
 
 type Service struct {
 	Index map[string][]int
+	mux   sync.Mutex
 }
 
 func New() *Service {
@@ -22,9 +24,11 @@ func (s *Service) Add(d scanner.Document) {
 	ss := strings.Split(d.Title, " ")
 	for _, str := range ss {
 		str = strings.ToLower(str)
+		s.mux.Lock()
 		if !contains(s.Index[str], d.ID) {
 			s.Index[str] = append(s.Index[str], d.ID)
 		}
+		s.mux.Unlock()
 	}
 }
 
