@@ -1,4 +1,4 @@
-package main
+package gosearch
 
 import (
 	"fmt"
@@ -7,35 +7,25 @@ import (
 	"go-core-own/homework-14/pkg/scanner"
 	"go-core-own/homework-14/pkg/scanner/spider"
 	"go-core-own/homework-14/pkg/storage/btree"
-	"log"
 	"sync"
 )
 
 // Поисковик GoSearch
-type gosearch struct {
+type Service struct {
 	scanner *spider.Service
 	index   *index.Service
 	storage *btree.Tree
-	engine  *engine.Service
+	Engine  *engine.Service
 
 	sites []string
 	depth int
 }
 
 // Конструктор поисковика
-func new() (*gosearch, error) {
-	gs := gosearch{
-		sites: []string{
-			"https://go.dev",
-			"http://www.transflow.ru",
-			"https://www.newsru.com",
-			"https://www.gov-murman.ru/",
-			"https://www.anekdot.ru/",
-			"https://en.wikipedia.org/wiki/Main_Page",
-			"https://www.prj-exp.ru/gost-34",
-			"https://habr.com/ru/",
-		},
-		depth: 2,
+func New(sites []string, depth int) *Service {
+	gs := Service{
+		sites: sites,
+		depth: depth,
 
 		// Определяются зависимости сканер сайтов, служба индексирования
 		scanner: spider.New(&spider.Net{}),
@@ -44,19 +34,13 @@ func new() (*gosearch, error) {
 	}
 
 	// Поисковый движок
-	gs.engine = engine.New(gs.index, gs.storage)
+	gs.Engine = engine.New(gs.index, gs.storage)
 
-	return &gs, nil
+	return &gs
 }
 
-func main() {
-	gs, err := new()
-	if err != nil {
-		log.Printf("%v\n", err)
-		return
-	}
-
-	// запуска скинирования страниц, указанных в конструкторе поисковика
+// запуска скинирования страниц, указанных в конструкторе поисковика
+func (gs *Service) Init() {
 	// пока идет сканирование движок выдает результаты из загруженных из долговременного хранилища
 	go func() {
 		const W = 10                         // кол-во "рабочих"
@@ -86,7 +70,7 @@ func main() {
 		// поток для записи результатов сканирования
 		go func(results <-chan []scanner.Document) {
 			for data := range results {
-				gs.engine.Store(data)
+				gs.Engine.Store(data)
 			}
 		}(res)
 		// поток для чтения ошибок
@@ -102,16 +86,4 @@ func main() {
 		close(sites)
 		wg.Wait()
 	}()
-
-	var query string
-	for {
-		for query == "" {
-			fmt.Printf("\nВведите строку для поиска: ")
-			fmt.Scanln(&query)
-		}
-		for i, d := range gs.engine.Find(query) {
-			fmt.Printf("%d %v\n", i+1, d)
-		}
-		query = ""
-	}
 }
