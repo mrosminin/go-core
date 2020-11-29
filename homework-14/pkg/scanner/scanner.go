@@ -17,7 +17,3 @@ type Document struct {
 func (d Document) String() string {
 	return fmt.Sprintf("%s: %s", d.URL, d.Title)
 }
-
-type Interface interface {
-	Scan(string, int) ([]Document, error)
-}
