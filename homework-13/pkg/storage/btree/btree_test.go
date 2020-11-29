@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-var tree Tree
+var tree *Tree
 var fixtures []scanner.Document
 
 func TestMain(m *testing.M) {
@@ -16,6 +16,7 @@ func TestMain(m *testing.M) {
 		{URL: "url2", Title: "иЗ нЕсКоЛЬких сЛОв"},
 		{URL: "url3", Title: "другой заголовок"},
 	}
+	tree = New()
 	os.Exit(m.Run())
 }
 
