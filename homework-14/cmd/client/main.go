@@ -20,7 +20,7 @@ func main() {
 			reader := bufio.NewReader(os.Stdin)
 			fmt.Print("Введите запрос: ")
 			query, _ := reader.ReadString('\n')
-			if _, err = fmt.Fprintf(conn, query+"\n"); err != nil {
+			if _, err = fmt.Fprintf(conn, "%s\n", query); err != nil {
 				log.Fatal(err)
 			}
 			response, err := bufio.NewReader(conn).ReadString('\n')
