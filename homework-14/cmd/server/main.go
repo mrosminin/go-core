@@ -58,8 +58,9 @@ func handleConnection(conn net.Conn, gs *gosearch.Service) {
 			fmt.Printf("Ошибка: %v\n", err)
 			break
 		}
-		query = strings.Replace(query, "\n", "", -1)
-		query = strings.Replace(query, "\r", "", -1)
+		query = strings.TrimSuffix(query, "\n")
+		//query = strings.Replace(query, "\n", "", -1)
+		//query = strings.Replace(query, "\r", "", -1)
 
 		docs := gs.Engine.Find(query)
 		fmt.Printf("По запросу \"%s\" найдено %d документов\n", query, len(docs))
