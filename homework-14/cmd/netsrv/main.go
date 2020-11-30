@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"go-core-own/homework-14/pkg/gosearch"
 	"log"
 	"net"
+	"strings"
 )
 
 var sites = []string{
@@ -25,33 +25,41 @@ func main() {
 	gs.Init()
 
 	// регистрация сетевой службы
-	listener, err := net.Listen("tcp4", ":8080")
+	listener, err := net.Listen("tcp", ":8080")
+	defer listener.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("Сервер слушает порт 8080...")
 
-	// цикл обработки клиентских подключений
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
+			conn.Close()
+			continue
 		}
-		handler(conn, gs)
+		go handleConnection(conn, gs)
 	}
 }
 
-func handler(conn net.Conn, gs *gosearch.Service) {
-	//conn.SetDeadline(time.Now().Add(time.Second * 10))
-	r := bufio.NewReader(conn)
-	for {
-		query, _, err := r.ReadLine()
-		if err != nil {
-			return
-		}
-
-		//conn.SetDeadline(time.Now().Add(time.Second * 10))
-		for i, d := range gs.Engine.Find(string(query)) {
-			_, _ = fmt.Fprintf(conn, "%d %v\n", i+1, d)
-		}
+// обработка подключения
+func handleConnection(conn net.Conn, gs *gosearch.Service) {
+	// Читаем из соединение через буфер, т.к. ReadString('\n'), ReadLine, ReadAll не работают - нет EOF
+	input := make([]byte, 1024*4)
+	n, err := conn.Read(input)
+	if n == 0 || err != nil {
+		fmt.Println("Read error:", err)
+		return
 	}
+	query := string(input[0:n])
+	query = strings.Replace(query, "\n", "", -1)
+	query = strings.Replace(query, "\r", "", -1)
+
+	docs := gs.Engine.Find(query)
+	for i, d := range docs {
+		_, _ = fmt.Fprintf(conn, "%d %v\n", i+1, d)
+	}
+	fmt.Printf("По запросу \"%s\" найдено %d документов\n", query, len(docs))
+	conn.Close()
 }

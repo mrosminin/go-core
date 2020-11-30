@@ -8,27 +8,31 @@ import (
 )
 
 func main() {
-	conn, err := net.Dial("tcp4", "localhost:8080")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var query string
 	for {
-		for query == "" {
-			fmt.Printf("\nВведите строку для поиска: ")
-			fmt.Scanln(&query)
+		var query string
+		fmt.Print("Введите запрос: ")
+		_, err := fmt.Scanln(&query)
+		if err != nil {
+			fmt.Println("Некорректный ввод: ", err)
+			continue
 		}
-		_, err = conn.Write([]byte(query))
+		conn, err := net.Dial("tcp4", "localhost:8080")
 		if err != nil {
 			log.Fatal(err)
 		}
-
+		// отправляем сообщение серверу
+		if n, err := conn.Write([]byte(query)); n == 0 || err != nil {
+			log.Fatal(err)
+		}
+		// получем ответ
 		data, err := ioutil.ReadAll(conn)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println("Ошибка: ", err)
+			conn.Close()
+			continue
 		}
-		fmt.Println(data)
-		query = ""
+		fmt.Print(string(data))
+		fmt.Println()
+		conn.Close()
 	}
 }
