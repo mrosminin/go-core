@@ -35,7 +35,7 @@ func (s *Service) Find(q string) []scanner.Document {
 	ids := s.index.Find(q)
 	var result []scanner.Document
 	for _, id := range ids {
-		doc, err := s.storage.Find(id)
+		doc, err := s.Storage.Find(id)
 		if err != nil {
 			continue
 		}
