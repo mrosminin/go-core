@@ -8,15 +8,13 @@ import (
 	"go-core-own/homework-16/pkg/scanner"
 	"go-core-own/homework-16/pkg/scanner/spider"
 	"go-core-own/homework-16/pkg/storage"
-	"go-core-own/homework-16/pkg/storage/btree"
-	"go-core-own/homework-16/pkg/storage/diskstor"
 	"log"
 	"sync"
 )
 
 // Поисковик GoSearch
 type gosearch struct {
-	scanner scanner.Interface
+	scanner *spider.Service
 	index   *index.Service
 	storage *storage.Service
 	engine  *engine.Service
@@ -44,14 +42,8 @@ func new() (*gosearch, error) {
 		// Определяются зависимости сканер сайтов, служба индексирования
 		scanner: spider.New(&spider.Net{}),
 		index:   index.New(),
+		storage: &storage.Service{},
 	}
-
-	// Служба хранения данных
-	sl, err := diskstor.New("./diskstor.txt")
-	if err != nil {
-		return nil, err
-	}
-	gs.storage = storage.New(sl, btree.New())
 
 	// Поисковый движок
 	gs.engine = engine.New(gs.index, gs.storage)

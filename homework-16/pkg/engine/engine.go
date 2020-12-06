@@ -5,7 +5,6 @@
 package engine
 
 import (
-	"encoding/json"
 	"go-core-own/homework-16/pkg/index"
 	"go-core-own/homework-16/pkg/scanner"
 	"go-core-own/homework-16/pkg/storage"
@@ -13,42 +12,22 @@ import (
 
 type Service struct {
 	index   *index.Service
-	storage *storage.Service
+	Storage *storage.Service
 }
 
 func New(index *index.Service, storage *storage.Service) *Service {
-	s := &Service{
+	return &Service{
 		index:   index,
-		storage: storage,
+		Storage: storage,
 	}
-	_ = s.init()
-	return s
-}
-
-// Инициализация поискового движка. Загрузка данных прошлых сканирований в индекс и хранилище документов
-func (s *Service) init() error {
-	jsonData, err := s.storage.Load()
-	if err != nil {
-		return err
-	}
-	err = s.restore(jsonData)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // Store сохраняет документы в хранилище, передает на индексирование, экспортирует в долгосрочное хранилище
-func (s *Service) Store(data []scanner.Document) error {
+func (s *Service) Store(data []scanner.Document) {
 	for _, d := range data {
-		d.ID = s.storage.Insert(d)
+		d.ID = s.Storage.Insert(d)
 		s.index.Add(d)
 	}
-	err := s.export()
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // Find выдает результаты поискового запроса (id документов берутся из службы индексирования, сами документы из хранилища)
@@ -63,31 +42,4 @@ func (s *Service) Find(q string) []scanner.Document {
 		result = append(result, doc)
 	}
 	return result
-}
-
-// restore загружает данные прошлых сканирований из долговременного хранилища
-// декодирует данные из json строки, передает на хранение
-func (s *Service) restore(p []byte) error {
-	var docs []scanner.Document
-	err := json.Unmarshal(p, &docs)
-	if err != nil {
-		return err
-	}
-	err = s.Store(docs)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Service) export() error {
-	jsonData, err := s.storage.Json()
-	if err != nil {
-		return err
-	}
-	err = s.storage.Save(jsonData)
-	if err != nil {
-		return err
-	}
-	return nil
 }
