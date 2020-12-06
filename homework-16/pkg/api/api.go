@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"go-core-own/homework-16/pkg/engine"
 	"go-core-own/homework-16/pkg/scanner"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -47,13 +48,12 @@ func (api *API) FindRequestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var query string
-	err := json.NewDecoder(r.Body).Decode(&query)
+	query, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	docs := api.e.Find(query)
+	docs := api.e.Find(string(query))
 	jsonData, err := json.Marshal(docs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
