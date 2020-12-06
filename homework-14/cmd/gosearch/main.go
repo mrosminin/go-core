@@ -1,35 +1,42 @@
-// gosearch - основной пакет приложения
-// Функции пакета:
-// 1. Создание экзепляра поискового робота со всеми зависимостями
-// 2. Инициализация - старт сканирования и индексирования
-package gosearch
+package main
 
 import (
 	"fmt"
 	"go-core-own/homework-14/pkg/engine"
 	"go-core-own/homework-14/pkg/index"
+	"go-core-own/homework-14/pkg/netsrv"
 	"go-core-own/homework-14/pkg/scanner"
 	"go-core-own/homework-14/pkg/scanner/spider"
 	"go-core-own/homework-14/pkg/storage/btree"
+	"log"
 	"sync"
 )
 
 // Поисковик GoSearch
-type Service struct {
+type gosearch struct {
 	scanner *spider.Service
 	index   *index.Service
 	storage *btree.Tree
-	Engine  *engine.Service
+	engine  *engine.Service
 
 	sites []string
 	depth int
 }
 
 // Конструктор поисковика
-func New(sites []string, depth int) *Service {
-	gs := Service{
-		sites: sites,
-		depth: depth,
+func new() (*gosearch, error) {
+	gs := gosearch{
+		sites: []string{
+			"https://go.dev",
+			"http://www.transflow.ru",
+			"https://www.newsru.com",
+			"https://www.gov-murman.ru/",
+			"https://www.anekdot.ru/",
+			"https://en.wikipedia.org/wiki/Main_Page",
+			"https://www.prj-exp.ru/gost-34",
+			"https://habr.com/ru/",
+		},
+		depth: 2,
 
 		// Определяются зависимости сканер сайтов, служба индексирования
 		scanner: spider.New(&spider.Net{}),
@@ -38,13 +45,19 @@ func New(sites []string, depth int) *Service {
 	}
 
 	// Поисковый движок
-	gs.Engine = engine.New(gs.index, gs.storage)
+	gs.engine = engine.New(gs.index, gs.storage)
 
-	return &gs
+	return &gs, nil
 }
 
-// запуска скинирования страниц, указанных в конструкторе поисковика
-func (gs *Service) Init() {
+func main() {
+	gs, err := new()
+	if err != nil {
+		log.Fatalf("%v\n", err)
+		return
+	}
+
+	// запуска скинирования страниц, указанных в конструкторе поисковика
 	// пока идет сканирование движок выдает результаты из загруженных из долговременного хранилища
 	go func() {
 		const W = 10                         // кол-во "рабочих"
@@ -74,7 +87,7 @@ func (gs *Service) Init() {
 		// поток для записи результатов сканирования
 		go func(results <-chan []scanner.Document) {
 			for data := range results {
-				gs.Engine.Store(data)
+				gs.engine.Store(data)
 			}
 		}(res)
 		// поток для чтения ошибок
@@ -90,4 +103,7 @@ func (gs *Service) Init() {
 		close(sites)
 		wg.Wait()
 	}()
+
+	// запуск веб-приложения для отображения содержимого индекса и хранилища
+	log.Fatal(netsrv.Serve(gs.engine, "tcp4", ":8080"))
 }

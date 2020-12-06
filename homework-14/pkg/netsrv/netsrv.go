@@ -1,36 +1,20 @@
-package main
+package netsrv
 
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"go-core-own/homework-14/pkg/gosearch"
-	"log"
+	"go-core-own/homework-14/pkg/engine"
 	"net"
 	"strings"
 	"time"
 )
 
-var sites = []string{
-	"https://go.dev",
-	"http://www.transflow.ru",
-	"https://www.newsru.com",
-	"https://www.gov-murman.ru/",
-	"https://www.anekdot.ru/",
-	"https://en.wikipedia.org/wiki/Main_Page",
-	"https://www.prj-exp.ru/gost-34",
-	"https://habr.com/ru/",
-}
-var depth = 2
-
-func main() {
-	gs := gosearch.New(sites, depth)
-	gs.Init()
-
+func Serve(engine *engine.Service, network, addr string) error {
 	// регистрация сетевой службы
-	listener, err := net.Listen("tcp", ":8080")
+	listener, err := net.Listen(network, addr)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	fmt.Println("Сервер слушает порт 8080...")
 
@@ -41,12 +25,12 @@ func main() {
 			conn.Close()
 			continue
 		}
-		go handleConnection(conn, gs)
+		go handleConnection(conn, engine)
 	}
 }
 
 // обработка подключения
-func handleConnection(conn net.Conn, gs *gosearch.Service) {
+func handleConnection(conn net.Conn, engine *engine.Service) {
 	defer conn.Close()
 	conn.SetDeadline(time.Now().Add(time.Second * 20))
 
@@ -63,7 +47,7 @@ func handleConnection(conn net.Conn, gs *gosearch.Service) {
 		query = strings.Replace(query, "\n", "", -1)
 		query = strings.Replace(query, "\r", "", -1)
 
-		docs := gs.Engine.Find(query)
+		docs := engine.Find(query)
 		fmt.Printf("По запросу \"%s\" найдено %d документов\n", query, len(docs))
 		if len(docs) == 0 {
 			fmt.Fprintf(conn, "По запросу \"%s\" ничего не найдено\n", query)
