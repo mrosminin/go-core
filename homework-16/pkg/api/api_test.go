@@ -21,13 +21,14 @@ var api *API
 func TestMain(m *testing.M) {
 	api = &API{
 		r: mux.NewRouter(),
-		e: engine.New(index.New(), &storage.Service{}),
 	}
 	api.endpoints()
 	os.Exit(m.Run())
 }
 
 func TestAPI_FindRequestHandler(t *testing.T) {
+	api.e = engine.New(index.New(), &storage.Service{})
+
 	want := scanner.Document{ID: 0, URL: "url1", Title: "ЗаГолоВОК иЗ нЕсКоЛЬких сЛОв"}
 	api.e.Store([]scanner.Document{want})
 
@@ -48,6 +49,8 @@ func TestAPI_FindRequestHandler(t *testing.T) {
 }
 
 func TestAPI_NewDocRequestHandler(t *testing.T) {
+	api.e = engine.New(index.New(), &storage.Service{})
+
 	doc := scanner.Document{ID: 0, URL: "url1", Title: "ЗаГолоВОК иЗ нЕсКоЛЬких сЛОв"}
 	payload, _ := json.Marshal(doc)
 
@@ -69,6 +72,8 @@ func TestAPI_NewDocRequestHandler(t *testing.T) {
 }
 
 func TestAPI_UpdateDocRequestHandler(t *testing.T) {
+	api.e = engine.New(index.New(), &storage.Service{})
+
 	doc := scanner.Document{ID: 0, URL: "url1", Title: "ЗаГолоВОК иЗ нЕсКоЛЬких сЛОв"}
 	api.e.Store([]scanner.Document{doc})
 
@@ -88,6 +93,8 @@ func TestAPI_UpdateDocRequestHandler(t *testing.T) {
 }
 
 func TestAPI_DeleteDocRequestHandler(t *testing.T) {
+	api.e = engine.New(index.New(), &storage.Service{})
+
 	doc := scanner.Document{ID: 0, URL: "url1", Title: "ЗаГолоВОК иЗ нЕсКоЛЬких сЛОв"}
 	api.e.Store([]scanner.Document{doc})
 
