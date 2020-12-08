@@ -74,7 +74,7 @@ func (s *Service) docsHandler(w http.ResponseWriter, r *http.Request) {
 	defer fmt.Fprint(w, "</div></body></html>")
 	str, err := s.storage.Json()
 	if err != nil {
-		fmt.Fprintf(w, "%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	fmt.Fprintf(w, "%s", str)
