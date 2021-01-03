@@ -8,11 +8,7 @@ import (
 
 func main() {
 	r := mux.NewRouter()
-	api := api.New(
-		r,
-		[]api.User{{Login: "admin", Pass: "P@ssw0rd", Admin: true}},
-		[]byte("trustno1"),
-	)
+	api := api.New(r)
 	api.Endpoints()
 	http.ListenAndServe(":8080", r)
 }

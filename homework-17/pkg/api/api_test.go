@@ -13,27 +13,32 @@ import (
 
 func TestAPI_authHandler(t *testing.T) {
 	r := mux.NewRouter()
-	user := User{Login: "admin", Pass: "P@ssw0rd", Admin: true}
-	api := New(
-		r,
-		[]User{user},
-		[]byte("trustno1"),
-	)
+	api := New(r)
 	api.Endpoints()
 
 	tests := []struct {
 		name string
-		user User
+		user user
 		want int
 	}{
 		{
 			name: "Тест1",
-			user: user,
+			user: user{Login: "admin", Pass: "AdminP@ssw0rd", Admin: true},
 			want: http.StatusOK,
 		},
 		{
 			name: "Тест2",
-			user: User{},
+			user: user{Login: "guest", Pass: "GuestP@ssw0rd", Admin: false},
+			want: http.StatusOK,
+		},
+		{
+			name: "Тест3",
+			user: user{Login: "admin", Pass: "Wr0nG"},
+			want: http.StatusUnauthorized,
+		},
+		{
+			name: "Тест4",
+			user: user{},
 			want: http.StatusUnauthorized,
 		},
 	}
@@ -49,7 +54,7 @@ func TestAPI_authHandler(t *testing.T) {
 			if rr.Code == http.StatusOK {
 				resp, _ := ioutil.ReadAll(rr.Body)
 				token, err := jwt.Parse(string(resp), func(token *jwt.Token) (interface{}, error) {
-					return api.key, nil
+					return key, nil
 				})
 				if err != nil {
 					t.Errorf("ошибка раскодирования токена: %v", err)
@@ -59,8 +64,8 @@ func TestAPI_authHandler(t *testing.T) {
 				if !(ok && token.Valid) {
 					t.Error("токен невалидный")
 				}
-				if claims["admin"] != user.Admin {
-					t.Errorf("ошибка claims: получили %v, а хотели %v", claims["admin"], user.Admin)
+				if claims["admin"] != tt.user.Admin {
+					t.Errorf("ошибка claims: получили %v, а хотели %v", claims["admin"], tt.user.Admin)
 				}
 			}
 		})

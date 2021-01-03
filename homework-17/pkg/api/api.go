@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type User struct {
+type user struct {
 	Login string
 	Pass  string
 	Admin bool
@@ -18,15 +18,18 @@ type User struct {
 
 type API struct {
 	r     *mux.Router
-	users []User
-	key   []byte
+	users []user
 }
 
-func New(r *mux.Router, users []User, key []byte) *API {
+var key = []byte("trustno1")
+
+func New(r *mux.Router) *API {
 	return &API{
-		r:     r,
-		users: users,
-		key:   key,
+		r: r,
+		users: []user{
+			{Login: "admin", Pass: "AdminP@ssw0rd", Admin: true},
+			{Login: "guest", Pass: "GuestP@ssw0rd", Admin: false},
+		},
 	}
 }
 
@@ -51,17 +54,21 @@ func (api *API) authHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user User
+	var user user
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	found := false
 	for _, u := range api.users {
 		if user.Login == u.Login && user.Pass == u.Pass {
 			user = u
+			found = true
 			break
 		}
+	}
+	if !found {
 		http.Error(w, "User not found", http.StatusUnauthorized)
 		return
 	}
@@ -71,7 +78,7 @@ func (api *API) authHandler(w http.ResponseWriter, r *http.Request) {
 		"admin": user.Admin,
 	})
 
-	tokenString, err := token.SignedString(api.key)
+	tokenString, err := token.SignedString(key)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
