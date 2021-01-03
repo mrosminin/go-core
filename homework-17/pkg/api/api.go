@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type user struct {
+type User struct {
 	Login string
 	Pass  string
 	Admin bool
@@ -18,19 +18,21 @@ type user struct {
 
 type API struct {
 	r     *mux.Router
-	users []user
+	users []User
 	key   []byte
 }
 
-func New(r *mux.Router) *API {
-	api := API{
+func New(r *mux.Router, users []User, key []byte) *API {
+	return &API{
 		r:     r,
-		users: []user{{Login: "admin", Pass: "P@ssw0rd", Admin: true}},
-		key:   []byte("qwerty321"),
+		users: users,
+		key:   key,
 	}
+}
+
+func (api *API) Endpoints() {
 	api.r.Use(logMiddleware)
 	api.r.HandleFunc("/api/v1/auth", api.authHandler).Methods(http.MethodPost, http.MethodOptions)
-	return &api
 }
 
 // middleware для логирования запросов к API в формете Apache Common Log Format (CLF)
@@ -49,7 +51,7 @@ func (api *API) authHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user user
+	var user User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -60,7 +62,7 @@ func (api *API) authHandler(w http.ResponseWriter, r *http.Request) {
 			user = u
 			break
 		}
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		http.Error(w, "User not found", http.StatusUnauthorized)
 		return
 	}
 
