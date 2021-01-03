@@ -6,8 +6,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"strings"
 	"sync"
 )
+
+const masterPwd = "password"
 
 type Client struct {
 	Name  string
@@ -57,7 +60,7 @@ func (api *API) sendHandler(w http.ResponseWriter, r *http.Request) {
 	api.Queue <- string(message)
 }
 
-// получение сообщений от всех клиентов
+// авторизация и получение сообщений от всех клиентов
 func (api *API) messagesHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := api.upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -81,7 +84,7 @@ func (api *API) messagesHandler(w http.ResponseWriter, r *http.Request) {
 		conn.WriteMessage(websocket.CloseMessage, []byte(err.Error()))
 		return
 	}
-	if req.Pwd != "password" {
+	if req.Pwd != masterPwd {
 		conn.WriteMessage(websocket.TextMessage, []byte("Unauthorized"))
 		return
 	}
@@ -111,6 +114,10 @@ func (api *API) messagesHandler(w http.ResponseWriter, r *http.Request) {
 
 	// чтение сообщений из канала данного клиента
 	for msg := range client.Queue {
+		// не отправляем обратно сообщения пользователя
+		if strings.HasPrefix(msg, client.Name) {
+			continue
+		}
 		err := conn.WriteMessage(websocket.TextMessage, []byte(msg))
 		if err != nil {
 			return

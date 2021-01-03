@@ -18,11 +18,11 @@ func main() {
 		Pwd  string
 	}
 	for client.Name == "" {
-		fmt.Printf("\nВведите имя: ")
+		fmt.Printf("Введите имя: ")
 		fmt.Scanln(&client.Name)
 	}
 	for client.Pwd == "" {
-		fmt.Printf("\nВведите пароль: ")
+		fmt.Printf("Введите пароль: ")
 		fmt.Scanln(&client.Pwd)
 	}
 	payload, err := json.Marshal(client)
