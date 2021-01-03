@@ -59,12 +59,14 @@ func main() {
 }
 
 func send(name string) {
+	fmt.Println("Добро пожаловать в WebSocket Chat")
 	reader := bufio.NewReader(os.Stdin) // буфер для os.Stdin
 	for {
-		fmt.Print("-> ")
-		msg, _ := reader.ReadString('\n')        // чтение строки (до символа перевода)
-		msg = strings.Replace(msg, "\n", "", -1) // удаление перевода строки
-
+		msg := ""
+		for msg == "" {
+			msg, _ = reader.ReadString('\n')         // чтение строки (до символа перевода)
+			msg = strings.Replace(msg, "\n", "", -1) // удаление перевода строки
+		}
 		ws, _, err := websocket.DefaultDialer.Dial("ws://localhost:8080/send", nil)
 		if err != nil {
 			ws.Close()
@@ -77,7 +79,6 @@ func send(name string) {
 			log.Fatalf("не удалось отправить сообщение: %v", err)
 		}
 		ws.Close()
-		time.Sleep(time.Second)
 	}
 }
 
@@ -87,7 +88,7 @@ func messages(ws *websocket.Conn) {
 		if err != nil {
 			log.Fatalf("не удалось прочитать сообщение: %v", err)
 		}
-		fmt.Println(string(p))
+		log.Printf("%s\n", string(p))
 		time.Sleep(time.Second)
 	}
 }
