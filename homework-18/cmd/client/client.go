@@ -83,6 +83,7 @@ func send(name string) {
 }
 
 func messages(ws *websocket.Conn) {
+	defer ws.Close()
 	for {
 		_, p, err := ws.ReadMessage()
 		if err != nil {
