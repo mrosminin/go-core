@@ -14,6 +14,7 @@ const masterPwd = "password"
 
 type Client struct {
 	Name  string
+	Pwd   string
 	Queue chan string
 }
 
@@ -75,26 +76,20 @@ func (api *API) messagesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req struct {
-		Name string
-		Pwd  string
-	}
-	err = json.Unmarshal(message, &req)
+	var client Client
+	err = json.Unmarshal(message, &client)
 	if err != nil {
 		conn.WriteMessage(websocket.CloseMessage, []byte(err.Error()))
 		return
 	}
-	if req.Pwd != masterPwd {
+	if client.Pwd != masterPwd {
 		conn.WriteMessage(websocket.TextMessage, []byte("Unauthorized"))
 		return
 	}
 
 	// при подключении для клиента создаётся канал и добавляется в массив
 	api.mux.Lock()
-	client := Client{
-		Name:  req.Name,
-		Queue: make(chan string),
-	}
+	client.Queue = make(chan string)
 	api.Clients = append(api.Clients, client)
 	api.mux.Unlock()
 
