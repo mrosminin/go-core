@@ -23,7 +23,7 @@ func main() {
 			log.Fatal("dialing:", err)
 		}
 		var docs []scanner.Document
-		client.Call("Server.Search", query, &docs)
+		client.Call("RPC.Search", query, &docs)
 		if err != nil {
 			log.Fatal(err)
 		}
