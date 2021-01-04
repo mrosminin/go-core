@@ -1,3 +1,4 @@
+// RPC клиент для поисковика
 package main
 
 import (
