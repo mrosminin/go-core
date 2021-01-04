@@ -13,9 +13,7 @@ import (
 
 func TestAPI_authHandler(t *testing.T) {
 	r := mux.NewRouter()
-	api := New(r)
-	api.Endpoints()
-
+	New(r)
 	tests := []struct {
 		name string
 		user user

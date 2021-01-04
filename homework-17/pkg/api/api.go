@@ -24,18 +24,16 @@ type API struct {
 var key = []byte("trustno1")
 
 func New(r *mux.Router) *API {
-	return &API{
+	api := &API{
 		r: r,
 		users: []user{
 			{Login: "admin", Pass: "AdminP@ssw0rd", Admin: true},
 			{Login: "guest", Pass: "GuestP@ssw0rd", Admin: false},
 		},
 	}
-}
-
-func (api *API) Endpoints() {
 	api.r.Use(logMiddleware)
 	api.r.HandleFunc("/api/v1/auth", api.authHandler).Methods(http.MethodPost, http.MethodOptions)
+	return api
 }
 
 // middleware для логирования запросов к API в формете Apache Common Log Format (CLF)
@@ -69,7 +67,7 @@ func (api *API) authHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if !found {
-		http.Error(w, "User not found", http.StatusUnauthorized)
+		http.Error(w, "login or password incorrect", http.StatusUnauthorized)
 		return
 	}
 
