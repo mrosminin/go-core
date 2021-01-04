@@ -30,8 +30,10 @@ WHERE actors.first_name IN ('James', 'Stoya')
 
 -- выборка актёров, участвовавших более чем в 2 фильмах;
 SELECT
-actors.first_name,
-actors.last_name,
-(SELECT COUNT(films_actors.id) FROM films_actors WHERE films_actors.actor_id = actors.id) as films_num
-FROM actors
-WHERE (SELECT COUNT(films_actors.id) FROM films_actors WHERE films_actors.actor_id = actors.id) > 2
+    actors.first_name,
+    actors.last_name,
+    (SELECT COUNT(films_actors.id) FROM films_actors WHERE films_actors.actor_id = actors.id) as films_num
+FROM
+    actors
+WHERE
+    (SELECT COUNT(films_actors.id) FROM films_actors WHERE films_actors.actor_id = actors.id) > 2
