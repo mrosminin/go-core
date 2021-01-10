@@ -1,7 +1,7 @@
 --выборка фильмов с названием студии;
 SELECT films.id, films.title, studios.name
 FROM films
-LEFT JOIN studios ON studios.id = films.studio_id
+JOIN studios ON studios.id = films.studio_id
 
 --подсчёт количества фильмов для актёров;
 SELECT actors.first_name, actors.last_name, COUNT(films_actors.id) AS films_num
