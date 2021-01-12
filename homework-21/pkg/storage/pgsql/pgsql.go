@@ -24,8 +24,7 @@ func New(connStr string) (*Storage, error) {
 
 // GetFilms возвращает фильмы
 func (s *Storage) GetFilms(req storage.Request) (data []storage.Film, err error) {
-	rows, err := s.db.Query(context.Background(),
-		`
+	rows, err := s.db.Query(context.Background(), `
 	SELECT
     	films.id,
 		films.title,
@@ -109,7 +108,7 @@ func (s *Storage) NewFilms(films []storage.Film) (err error) {
 	return nil
 }
 
-// UpdateFile обновляет фильм
+// UpdateFilm обновляет фильм
 func (s *Storage) UpdateFilm(film storage.Film) (err error) {
 	_, err = s.db.Exec(context.Background(), `
 			UPDATE
