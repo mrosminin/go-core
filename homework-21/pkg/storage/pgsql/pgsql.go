@@ -26,7 +26,7 @@ func New(connStr string) (*Storage, error) {
 func (s *Storage) GetFilms(req storage.Request) (data []storage.Film, err error) {
 	rows, err := s.db.Query(context.Background(), `
 	SELECT
-    	films.id,
+		films.id,
 		films.title,
 		films.year,
 		films.fees,
